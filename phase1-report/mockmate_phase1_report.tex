@@ -8,6 +8,7 @@
 \usepackage{tgpagella}
 \usepackage{newpxmath}
 \usepackage{microtype}
+\usepackage{ragged2e}
 \usepackage{csquotes}
 \usepackage[english]{babel}
 \usepackage[a4paper,top=1in,bottom=1in,left=1.25in,right=1in]{geometry}
@@ -28,15 +29,18 @@
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit}
 
-\setstretch{1.25}
+\setstretch{1.22}
 \setlength{\parindent}{1.25em}
-\setlength{\parskip}{0.18em}
+\setlength{\parskip}{0.22em}
 \setlist[itemize]{leftmargin=2.2em,itemsep=0.2em,topsep=0.3em}
 \setlist[enumerate]{leftmargin=2.2em,itemsep=0.2em,topsep=0.3em}
 \captionsetup{font=small,labelfont=bf,justification=centering,singlelinecheck=false}
 \counterwithout{figure}{chapter}
 \counterwithout{table}{chapter}
-\emergencystretch=2em
+\emergencystretch=3em
+\clubpenalty=10000
+\widowpenalty=10000
+\displaywidowpenalty=10000
 
 \titleformat{\chapter}[display]
   {\normalfont\bfseries\centering}
@@ -80,6 +84,7 @@
 \renewcommand{\cftloftitlefont}{\hfill\Huge\bfseries}
 \renewcommand{\cftafterloftitle}{\hfill}
 \renewcommand{\cftlottitlefont}{\hfill\Huge\bfseries}
+\setlength{\cftbeforechapskip}{0.55em}
 \renewcommand{\cftafterlottitle}{\hfill}
 
 % Use the supplied college emblem if it is placed at this path.
@@ -91,6 +96,7 @@
 
 \begin{document}
 \hypersetup{pageanchor=false}
+\justifying
 
 % --------------------------------------------------------------------------
 % Title page
@@ -105,6 +111,7 @@ INTERVIEW PLATFORM FOR STUDENTS\par}
 
 \vspace{0.75cm}
 {\itshape Project Report (Phase I)\par}
+{\small Group ID: PG23CSB03\par}
 \vspace{0.25cm}
 {\itshape Submitted to the APJ Abdul Kalam Technological University\\
 in partial fulfilment of the requirements for the award of the degree\par}
@@ -270,11 +277,13 @@ We also acknowledge the support of the Department of Computer Science and Engine
 \chapter*{ABSTRACT}
 \addcontentsline{toc}{chapter}{ABSTRACT}
 \thispagestyle{plain}
-Technical interviews are an important part of recruitment for software development and other computing-related roles. However, students and fresh graduates may have limited opportunities to practise in a realistic interview environment and to receive structured feedback on their performance. Conventional mock interviews generally require another person to conduct and evaluate the session, which can make repeated practice difficult to arrange.
+MockMATE is a web-based platform developed to give students a structured way to practise technical interviews and review their answers. The current implementation provides account registration and login, interview configuration, a question sequence, answer submission, session history and a report for each completed interview. It is built around a React frontend and a Python backend exposed through a FastAPI application.
 
-MockMATE is proposed as an AI-powered interview practice platform intended primarily for students. The initial project scope focuses on Python technical interviews. It is designed to allow a candidate to participate through chat, audio and camera-based inputs. The platform aims to evaluate technical responses and provide additional feedback on communication and selected observable interview behaviours. At the end of a session, it is intended to generate a personalised report that identifies strengths and areas requiring improvement.
+An interview contains five questions selected from a local question bank. The bank currently covers nine categories, including Python, Java, C, C++, SQL, DBMS, object-oriented programming, data structures and algorithms, and general technical knowledge. Each category contains questions at easy, medium and hard levels. Candidates can submit written answers directly. The interface also includes audio recording; audio assessment is available only when the optional Faster-Whisper speech-to-text dependency is installed and enabled on the server. A transcription is then evaluated as text.
 
-The Phase I work studies existing AI-based mock interview systems, multimodal candidate assessment, natural language processing, emotion recognition and adaptive question generation. The literature review is used to identify limitations in existing approaches and to establish the motivation and objectives of the proposed system. The report also presents the proposed system design, its major modules, preliminary technology considerations and the expected outcomes. The implementation details and measured performance are outside the scope of this Phase I report and will be addressed during subsequent development and evaluation.
+The present evaluation engine uses predefined concepts and their alternatives to estimate relevance, keyword coverage, concept-based correctness, completeness and clarity. It produces a score and feedback for each response, then combines the five results into an overall report containing strengths, weak areas, missing concepts and study suggestions. This is a deterministic, keyword-based assessment method rather than an LLM-based judge. It cannot establish whether a statement is factually correct merely because expected terms are present. The current code does not implement camera capture, visual analysis, emotion recognition or adaptive question generation.
+
+This report describes the implemented modules, application architecture, data flow, evaluation method and current technical limitations. It also identifies the work required to improve assessment quality, extend the question bank, strengthen deployment security and evaluate the platform with student users.
 \clearpage
 
 % --------------------------------------------------------------------------
@@ -298,61 +307,31 @@ The Phase I work studies existing AI-based mock interview systems, multimodal ca
 \chapter{Introduction}
 
 \section{Background}
-Technical interviews are widely used by organisations to assess the suitability of candidates for software development and other technical positions. These interviews may evaluate programming knowledge, problem-solving ability, communication skills and the ability to explain technical decisions. For students and fresh graduates, performing well in an interview requires more than familiarity with a programming language. Candidates must also understand questions, organise their thoughts, explain solutions clearly and respond appropriately to follow-up questions.
+Technical interviews are used to examine whether a candidate can apply computing concepts, reason through problems and explain technical decisions. For students approaching internships and entry-level roles, preparation involves more than memorising definitions. They need opportunities to practise explaining ideas, compare alternative approaches and recognise gaps in their understanding.
 
-Many students have limited access to realistic interview practice. Practice opportunities may depend on the availability of peers, mentors, faculty members or professional interviewers. Even when practice sessions are available, feedback may be informal or may not cover all relevant aspects of performance. As a result, candidates may find it difficult to identify recurring weaknesses and measure their improvement over multiple sessions.
+Access to that practice is not always convenient. A mock interview usually requires another person to prepare questions, conduct the session and provide feedback. Peer practice can be useful, but the quality and consistency of the feedback depend on the interviewer and the time available. A software-based practice environment can make individual sessions easier to repeat and can preserve a record of earlier attempts.
 
-Recent developments in artificial intelligence have created opportunities to automate parts of the interview-practice process. Natural language processing can be used to interpret written responses, speech recognition can convert spoken answers into text, and language models can support question generation and feedback generation. Audio and video processing techniques can provide additional information about a candidate's delivery and visible interview behaviour.
+MockMATE addresses this need through a web application that organises short technical interviews and presents a structured review after each completed session. The project retains the title \emph{MockMATE: An AI-Powered Interview Platform for Students}; the assessment engine in the current code, however, is a transparent keyword-and-concept evaluator rather than a generative language model. This distinction is important when interpreting its scores.
 
-The project \emph{MockMATE: An AI-Powered Interview Platform for Students} proposes to bring these capabilities together in an accessible interview-practice platform. The initial version is intended to focus on Python technical interviews and support chat, audio and camera-based responses.
+\section{Problem Context}
+Students need a practical way to select a technical subject, attempt questions at a chosen level and review where their answers omitted expected concepts. A practice tool is useful only when the session remains coherent: questions must be delivered in order, answers must be associated with the correct question, interrupted sessions must remain accessible, and the final report must explain how its score was produced.
 
-\section{Motivation}
-The project is motivated by the need for a convenient and repeatable environment in which students can practise technical interviews. A candidate should be able to attempt an interview without having to arrange a human interviewer for every practice session. The system should also provide feedback that helps the candidate understand what was done well and what needs further attention.
+MockMATE therefore treats an interview as a persisted session rather than a sequence of unrelated prompts. Each session records its category, difficulty, questions, submitted answers and evaluation results. A candidate can return to an unfinished session, inspect completed interviews and compare the summary scores recorded for earlier attempts.
 
-The main motivations are:
-\begin{itemize}
-    \item To make technical interview practice more accessible to students and fresh graduates.
-    \item To provide a low-pressure environment in which candidates can practise repeatedly.
-    \item To reduce dependence on the availability of a human interviewer for routine practice.
-    \item To assess technical responses and provide structured feedback.
-    \item To include communication and observable interview behaviour as additional areas of feedback.
-    \item To help candidates identify strengths and weaknesses through a session-based report.
-\end{itemize}
+\section{Aim and Objectives}
+The aim is to provide students with a web-based environment for repeated technical interview practice and a consistent, explainable summary of their responses.
 
-\section{Problem Statement}
-Many students and fresh graduates have limited opportunities to practise technical interviews in a realistic setting. They may find it difficult to evaluate the correctness and clarity of their technical answers, communication and confidence without detailed feedback. Traditional mock interviews depend on the availability of another person and may not support frequent, individual practice. Existing automated approaches may concentrate on only one aspect, such as question generation, speech analysis or emotion recognition.
+The implementation is organised around five objectives. It provides account-based access so that interview records belong to an individual user; maintains a question bank covering several computing subjects and difficulty levels; delivers a fixed five-question interview with text answers and an optional audio-to-text path; evaluates each answer against concepts defined for its question; and prepares a report that brings together question scores, matched and missing concepts, strengths, weak areas and suggested topics for further study.
 
-Therefore, an accessible AI-assisted platform is proposed to support technical interview practice through multiple response modes and provide personalised feedback on technical answers, communication and selected observable interview behaviours.
+\section{Scope of the Current Version}
+The question bank currently contains nine categories: Python, Java, C, C++, SQL, DBMS, OOP, Data Structures and Algorithms, and General Technical. Each category has eight questions distributed across three difficulty levels. A session contains five distinct questions. The requested difficulty is used as the first selection preference; questions from neighbouring levels fill any remaining places, and the selected set is presented in easy-to-hard order.
 
-\section{Aim}
-The aim of the project is to design and develop an AI-powered mock interview platform that enables students to practise technical interviews and receive personalised feedback on their responses and interview performance.
+Written answers are supported directly. The browser interface can also record audio, preview a recording and allow it to be replaced before submission. The server evaluates an audio response only when Faster-Whisper is installed and configured. In that case, speech is transcribed and the resulting text is passed through the same evaluator used for typed answers. The system does not evaluate vocal tone, fluency, accent or emotion.
 
-\section{Objectives}
-The objectives of MockMATE are:
-\begin{enumerate}
-    \item To develop an AI-powered interview practice platform primarily intended for students.
-    \item To begin with Python-specific technical interview questions.
-    \item To allow candidates to respond through text chat, audio and camera-based inputs.
-    \item To analyse the technical content and relevance of candidate responses.
-    \item To examine selected communication characteristics and observable interview behaviour.
-    \item To generate personalised feedback highlighting strengths and areas for improvement.
-    \item To design the platform so that it can be extended to other programming languages, technical domains, adaptive questions and resume-based personalisation.
-\end{enumerate}
-
-\section{Scope of the Project}
-The initial scope is limited to a student-oriented mock interview platform with Python as its first technical domain. A candidate should be able to participate in an interview session using supported input modes and receive a summary of performance after the session.
-
-The proposed system considers three response modes:
-\begin{itemize}
-    \item \textbf{Text mode:} the candidate enters answers through a chat interface.
-    \item \textbf{Audio mode:} the candidate gives spoken answers, which can be transcribed for further analysis.
-    \item \textbf{Camera-based mode:} the candidate participates with a camera enabled so that selected observable visual information can be considered.
-\end{itemize}
-
-The project is intended for learning and self-improvement. It is not proposed as a replacement for professional recruitment decisions. In particular, automated estimates of confidence, emotion or visible behaviour should be treated cautiously and should not be interpreted as definitive measures of a person's ability or personality.
+Camera-based input, facial or gesture analysis, resume parsing, dynamically generated questions, adaptive follow-up dialogue and LLM-based answer judging are not implemented in the supplied code. They are outside the current functional scope. The scores are intended as study guidance and should not be treated as a verified measure of technical competence or as a recruitment decision.
 
 \section{Organisation of the Report}
-This report is organised into five chapters. Chapter 1 introduces the project, its motivation, problem statement, aim, objectives and scope. Chapter 2 reviews related research and identifies the gaps that motivate MockMATE. Chapter 3 presents the proposed system design and its overall workflow. Chapter 4 describes the major modules and preliminary software requirements. Chapter 5 concludes the Phase I work and outlines the proposed future activities.
+Chapter 1 establishes the project context, objectives and implementation boundaries. Chapter 2 reviews the interview-practice and automated-assessment studies included in the project literature survey. Chapter 3 explains the implemented architecture, interview lifecycle, question selection, persistence model and scoring procedure. Chapter 4 describes the application modules, technology choices and test coverage. Chapter 5 records the current state of the system and the work required for a more capable and thoroughly evaluated release.
 
 % ==========================================================================
 % Chapter 2
@@ -410,7 +389,7 @@ Table~\ref{tab:literature-comparison} summarises the research works included in 
 \sloppy
 \setlength{\tabcolsep}{4pt}
 \renewcommand{\arraystretch}{1.35}
-\begin{longtable}{|>{\centering\arraybackslash}p{0.55cm}|>{\raggedright\arraybackslash}p{3.0cm}|>{\raggedright\arraybackslash}p{2.2cm}|>{\raggedright\arraybackslash}p{4.0cm}|>{\raggedright\arraybackslash}p{3.6cm}|}
+\begin{longtable}{|>{\centering\arraybackslash}p{0.8cm}|>{\raggedright\arraybackslash}p{3.0cm}|>{\raggedright\arraybackslash}p{2.2cm}|>{\raggedright\arraybackslash}p{4.0cm}|>{\raggedright\arraybackslash}p{3.6cm}|}
 \hline
 \textbf{No.} & \textbf{Work / Author} & \textbf{Focus} & \textbf{Method / Contribution} & \textbf{Limitation} \\
 \hline
@@ -449,294 +428,283 @@ Table~\ref{tab:literature-comparison} summarises the research works included in 
 \endgroup
 
 \section{Research Gap}
-The reviewed works demonstrate that AI can support interview simulation, question generation, speech processing, multimodal analysis and automated feedback. However, the supplied survey indicates several gaps relevant to the proposed project:
+The studies reviewed in this chapter explore question generation, conversational simulation, speech processing, video assessment and multimodal candidate evaluation. They demonstrate that interview practice can be supported by software, but they also expose practical concerns: model outputs may be inconsistent, multimodal pipelines require suitable data and computing resources, and recruitment-oriented assessment is not necessarily designed for repeated student practice.
 
-\begin{itemize}
-    \item \textbf{Limited depth of feedback:} Some systems provide interview simulation but may offer limited guidance on how a candidate can improve.
-    \item \textbf{Fragmented assessment:} Some approaches analyse voice or emotion without fully evaluating the technical content of answers.
-    \item \textbf{Limited adaptation:} Resume-based question generation may not necessarily adapt subsequent questions according to the candidate's actual responses.
-    \item \textbf{Different target users:} Several multimodal systems are designed for recruitment or candidate screening rather than repeated practice by students.
-    \item \textbf{Reliability of generated feedback:} AI-generated questions and feedback may be inaccurate or inconsistent.
-    \item \textbf{Need for an integrated practice environment:} Students need a single platform that combines technical practice, communication feedback and selected observable interview behaviour.
-\end{itemize}
+For the current project, the relevant engineering problem is narrower. A student should be able to complete a short interview independently, return to an unfinished session and receive feedback that can be traced to the concepts attached to each question. The system must also make the limits of that feedback clear. In particular, a term-matching score should not be presented as proof that an answer is semantically or factually correct.
 
-\section{Proposed Approach}
-MockMATE is proposed as a student-oriented interview practice platform that brings together technical question-and-answer practice with feedback from multiple input modes. The initial scope is Python technical interviews. The proposed system aims to analyse the candidate's answer, use audio or camera input where enabled, and present a consolidated feedback report. The project will prioritise understandable feedback and a practical student workflow rather than attempting to make automated hiring decisions.
+\section{Project Approach}
+The implemented version adopts a staged approach. A curated JSON question bank supplies the interview content; a session service selects and stores five questions; the candidate submits a written response or, when speech recognition is available, a spoken response that is transcribed first. A modular evaluator analyses the resulting text, and a report builder aggregates the per-question results. User accounts and persistent session records support access control and interview history.
+
+This scope provides a working foundation without claiming the broader capabilities found in some of the reviewed systems. More advanced semantic assessment, adaptive dialogue and visual analysis remain separate development tasks and would require their own validation before being presented as reliable feedback.
 
 % ==========================================================================
 % Chapter 3
 % ==========================================================================
-\chapter{Proposed System Design}
+\chapter{System Architecture and Design}
 
-\section{Overview}
-MockMATE is planned as an AI-assisted platform through which a student can participate in a simulated technical interview. The system begins with the selection or creation of an interview session. It then presents questions, accepts the candidate's responses through the selected input mode and processes the collected information. After the session, the system is intended to generate a feedback report.
+\section{System Overview}
+MockMATE is organised as a browser-based client and a REST backend. The React application handles navigation, forms, interview interaction and report presentation. It communicates with a FastAPI service through a shared Axios client. The backend validates requests, checks the authenticated user, manages interview state and calls the question-selection, evaluation, transcription and report-building modules. SQLAlchemy maps the application records to the configured database; SQLite is the default database in the supplied configuration.
 
-The proposed design separates the user interface, interview management, input processing, AI-based analysis and report generation. This modular structure allows individual components to be developed and evaluated independently.
+The design separates the user-facing workflow from the evaluation logic. This allows the interface to remain focused on presenting questions and collecting responses while the backend controls the order of questions, validates submissions and persists the results. It also leaves a defined interface for replacing or extending the evaluator in a later version.
 
-\section{Overall Workflow}
-The proposed workflow consists of the following stages:
-
-\begin{enumerate}
-    \item \textbf{User access:} The candidate opens the platform and enters the interview-practice workflow.
-    \item \textbf{Interview setup:} The candidate selects the initial Python interview scope and the available response mode.
-    \item \textbf{Question presentation:} The system presents a technical interview question.
-    \item \textbf{Response collection:} The candidate submits a text answer or responds through audio or camera-enabled input.
-    \item \textbf{Input processing:} The submitted response is prepared for analysis. Audio may be transcribed, while camera-based input may be processed for selected visual features.
-    \item \textbf{Answer evaluation:} The system analyses the technical relevance and quality of the response.
-    \item \textbf{Performance analysis:} Selected communication characteristics and observable interview behaviour are considered where the relevant input is available.
-    \item \textbf{Feedback generation:} The system prepares a session report containing strengths and areas for improvement.
-\end{enumerate}
-
-\section{Proposed System Architecture}
-Figure~\ref{fig:architecture} presents a high-level view of the proposed MockMATE architecture. It is a design-level representation for Phase I; the final implementation architecture may change after technology selection and development.
+\section{Application Architecture}
+Figure~\ref{fig:architecture} shows the main components present in the repository. The JSON question bank is a data source for the question service. The optional Faster-Whisper component is used only for speech transcription; it is not involved when a candidate submits a typed answer.
 
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    node distance=0.48cm and 0.8cm,
-    block/.style={draw,rounded corners,align=center,minimum width=4.2cm,minimum height=0.78cm,font=\small},
-    smallblock/.style={draw,rounded corners,align=center,minimum width=3.2cm,minimum height=0.72cm,font=\small},
-    arrow/.style={-{Stealth[length=2mm]},thick}
+  font=\footnotesize,
+  layer/.style={draw,rounded corners=2pt,align=center,text width=12.4cm,minimum height=0.9cm,inner sep=5pt},
+  service/.style={draw,rounded corners=2pt,align=center,text width=3.65cm,minimum height=1.35cm,inner sep=5pt},
+  store/.style={draw,rounded corners=2pt,align=center,text width=8.8cm,minimum height=0.95cm,inner sep=5pt},
+  flow/.style={-{Stealth[length=2mm]},thick}
 ]
-\node[block] (user) {Candidate / User Interface};
-\node[block,below=of user] (setup) {Interview Setup and Session Management};
-\node[block,below=of setup] (questions) {Question Selection and Presentation};
-\node[smallblock,below left=0.75cm and 0.15cm of questions] (text) {Text Response};
-\node[smallblock,below=0.75cm of questions] (audio) {Audio Response};
-\node[smallblock,below right=0.75cm and 0.15cm of questions] (video) {Camera-based Input};
-\node[block,below=1.0cm of audio] (processing) {Input Processing and Feature Preparation};
-\node[block,below=of processing] (analysis) {AI-based Answer and Performance Analysis};
-\node[block,below=of analysis] (feedback) {Feedback and Report Generation};
-\node[block,below=of feedback] (report) {Candidate Feedback Report};
-
-\draw[arrow] (user) -- (setup);
-\draw[arrow] (setup) -- (questions);
-\draw[arrow] (questions) -- (text);
-\draw[arrow] (questions) -- (audio);
-\draw[arrow] (questions) -- (video);
-\draw[arrow] (text) -- (processing);
-\draw[arrow] (audio) -- (processing);
-\draw[arrow] (video) -- (processing);
-\draw[arrow] (processing) -- (analysis);
-\draw[arrow] (analysis) -- (feedback);
-\draw[arrow] (feedback) -- (report);
+\node[layer] (client) at (0,7.2) {\textbf{Browser application}\\React pages, navigation, interview interface and results display};
+\node[layer] (api) at (0,5.55) {\textbf{FastAPI REST API}\\Authentication, interview, metadata, statistics and report endpoints};
+\node[service] (auth) at (-4.2,3.15) {\textbf{Authentication}\\Registration, login and JWT validation};
+\node[service] (interview) at (0,3.15) {\textbf{Interview management}\\Session state, question selection and answer order};
+\node[service] (evaluation) at (4.2,3.15) {\textbf{Evaluation and reports}\\Keyword scoring, report builder and optional STT};
+\node[store] (database) at (0,0.35) {\textbf{Persistence layer}\\SQLAlchemy and SQLite: user accounts, interviews, question responses, evaluations and reports};
+\draw[flow] (client.south) -- (api.north);
+\draw (api.south) -- (0,4.25);
+\draw (-4.2,4.25) -- (4.2,4.25);
+\draw[flow] (-4.2,4.25) -- (auth.north);
+\draw[flow] (0,4.25) -- (interview.north);
+\draw[flow] (4.2,4.25) -- (evaluation.north);
+\draw (auth.south) -- (-4.2,1.45);
+\draw (interview.south) -- (0,1.45);
+\draw (evaluation.south) -- (4.2,1.45);
+\draw (-4.2,1.45) -- (4.2,1.45);
+\draw[flow] (0,1.45) -- (database.north);
 \end{tikzpicture}
-\caption{High-level proposed architecture of MockMATE.}
+\caption{Implemented application architecture and supporting resources.}
 \label{fig:architecture}
 \end{figure}
 
-\section{Description of Architecture Components}
+\section{Frontend Structure}
+The frontend is a single-page React application. React Router defines public routes for the landing page, registration and login, and protected routes for the dashboard, interview configuration, active interview, results and history. A protected-route component prevents unauthenticated access to the interview area. The authentication context restores the saved token on application startup by requesting the current-user endpoint and clears the local session when a protected request returns an unauthorised response.
 
-\subsection{Candidate Interface}
-The candidate interface is the entry point of the platform. It is intended to provide access to interview setup, question presentation, response submission and the final feedback report. The interface should make the practice process straightforward and should clearly indicate which input mode is active.
+The API client centralises HTTP communication. It attaches the bearer token to requests when one is present and converts backend validation messages into user-readable errors. Vite provides the development server and proxies API requests to the backend during local development. The interview interface separates text entry from audio recording, while the results page presents both the overall summary and the evaluation attached to each question.
 
-\subsection{Interview Session Management}
-This component manages the sequence and state of an interview session. It coordinates question presentation and response collection. It should maintain the association between each question and the candidate's corresponding answer so that the responses can be evaluated in context.
+\section{Interview Lifecycle}
+A candidate first registers or signs in. The dashboard retrieves session statistics and recent interviews, including any unfinished session that can be resumed. When creating a new interview, the candidate selects a category and one of the three difficulty levels. The backend selects five distinct questions and creates an interview record with the status \texttt{in\_progress}.
 
-\subsection{Question Selection and Presentation}
-The question component supplies technical questions for the interview. The initial scope is Python. Questions should be presented in a clear sequence and should be suitable for the intended student-level practice. Adaptive follow-up questions and resume-based personalisation are considered possible extensions rather than confirmed features of the Phase I design.
+Questions are then delivered one at a time. The backend identifies the first unanswered question and accepts only that question's response. Empty text, repeated submissions, out-of-order answers and attempts to submit to a completed session are rejected. Once the fifth answer has been evaluated, the backend aggregates the results, marks the interview as completed and stores the final report. The candidate is then directed to the results page; the same report can later be opened from interview history.
 
-\subsection{Input Processing}
-The input-processing component prepares candidate responses for analysis. Text responses can be passed directly to language-processing components. Audio responses may require speech-to-text conversion. Camera-based input may require visual processing to obtain selected observable features. The exact processing methods and models will be finalised during implementation.
+\section{Question Bank and Selection}
+The question bank is stored in \texttt{backend/app/ml\_engine/data/questions.json}. It currently contains eight questions in each of nine categories, giving 72 question records. Each record includes the question text, topic, difficulty and a list of expected concepts. A concept can include alternative spellings or phrases separated by a vertical bar, allowing the evaluator to recognise several forms of the same expected term.
 
-\subsection{AI-based Analysis}
-The analysis component is intended to examine the technical content of the candidate's answer. Depending on the available input, it may also analyse communication characteristics and selected observable interview behaviours. The design separates technical answer evaluation from audio- or video-derived observations so that the limitations of each analysis can be communicated clearly.
-
-\subsection{Feedback and Report Generation}
-The final component combines the analysis results into a structured report. The report is intended to highlight areas in which the candidate performed well and areas that need improvement. Feedback should be specific enough to guide further practice and should avoid presenting uncertain behavioural estimates as objective facts.
-
-\section{Data Flow}
-The proposed data flow is as follows:
-\begin{enumerate}
-    \item The candidate starts an interview session.
-    \item The system selects and displays a question.
-    \item The candidate submits a response through text, audio or camera-enabled interaction.
-    \item The response is stored or passed to the relevant processing component for the current session.
-    \item The system prepares the response for technical and, where applicable, communication analysis.
-    \item The analysis results are combined into a feedback summary.
-    \item The candidate views the final report and uses it to guide subsequent practice.
-\end{enumerate}
-
-\section{Design Considerations}
-The following considerations will guide the implementation:
-\begin{itemize}
-    \item \textbf{Usability:} The interview workflow should be understandable to students with different levels of technical experience.
-    \item \textbf{Modularity:} Question management, input processing, analysis and reporting should be separable components.
-    \item \textbf{Input flexibility:} The design should support text, audio and camera-based responses within the stated project scope.
-    \item \textbf{Feedback clarity:} Reports should explain strengths and weaknesses in a way that candidates can act upon.
-    \item \textbf{Privacy:} Audio and video data require careful handling, clear user consent and appropriate access controls.
-    \item \textbf{Responsible assessment:} Observable behaviour or emotion-related outputs should be treated as uncertain signals and should not be used as definitive judgments about a candidate.
-\end{itemize}
-
-% ==========================================================================
-% Chapter 4
-% ==========================================================================
-\chapter{Modules and Tools}
-
-\section{Module Description}
-The proposed MockMATE system is divided into five major modules. These modules describe the planned functional responsibilities of the Phase I design. Their final implementation details will be determined during the development phase.
-
-\subsection{User Interface and Interview Management}
-This module provides the candidate-facing interface and controls the interview session.
-
-\textbf{Main responsibilities:}
-\begin{itemize}
-    \item Provide an interface to start and manage an interview session.
-    \item Present questions in a readable and organised manner.
-    \item Allow the candidate to select an available response mode.
-    \item Maintain the sequence of questions and corresponding responses.
-    \item Provide access to the generated feedback report.
-\end{itemize}
-
-\textbf{Expected outcome:} A consistent interface through which students can complete a mock interview.
-
-\subsection{Question Management}
-This module is responsible for selecting and presenting interview questions. The initial question domain is Python technical interviews.
-
-\textbf{Main responsibilities:}
-\begin{itemize}
-    \item Organise questions according to the initial technical domain.
-    \item Present questions during the interview session.
-    \item Associate each response with its corresponding question.
-    \item Provide a foundation for future support for additional domains and difficulty levels.
-\end{itemize}
-
-\textbf{Expected outcome:} An organised question flow suitable for student-level Python interview practice.
-
-\subsection{Multimodal Response Collection and Processing}
-This module collects candidate responses through the supported interaction modes and prepares them for analysis.
-
-\textbf{Main responsibilities:}
-\begin{itemize}
-    \item Accept typed answers through the chat interface.
-    \item Capture spoken responses in audio mode.
-    \item Support camera-enabled interview input.
-    \item Convert audio to text when speech transcription is used.
-    \item Prepare relevant text, audio and visual information for the analysis stage.
-\end{itemize}
-
-\textbf{Expected outcome:} Candidate responses in a form that can be passed to the relevant analysis components.
-
-\subsection{Answer and Performance Analysis}
-This module forms the analytical part of the proposed system. It is intended to evaluate technical answers and provide additional observations based on the selected communication and visual inputs.
-
-\textbf{Main responsibilities:}
-\begin{itemize}
-    \item Analyse the relevance and technical content of candidate answers.
-    \item Identify missing or incomplete points where possible.
-    \item Examine selected communication characteristics from available responses.
-    \item Process selected observable behaviour features when camera input is enabled.
-    \item Keep technical evaluation distinct from uncertain behavioural observations.
-\end{itemize}
-
-\textbf{Expected outcome:} A structured set of analysis results that can be used to prepare candidate feedback.
-
-\subsection{Feedback and Report Generation}
-This module converts the analysis results into a report that the candidate can use for further practice.
-
-\textbf{Main responsibilities:}
-\begin{itemize}
-    \item Summarise performance across the interview questions.
-    \item Highlight strengths in technical responses and communication.
-    \item Identify areas that require additional preparation.
-    \item Present suggestions for improvement in a clear format.
-    \item Provide a basis for comparing performance across future practice sessions, if session history is implemented.
-\end{itemize}
-
-\textbf{Expected outcome:} A personalised feedback report that helps students identify their current strengths and weaknesses.
-
-\section{Preliminary Software and Technology Requirements}
-The supplied project material does not specify a final implementation stack. The following table therefore lists functional technology categories and candidate tools suggested by the reviewed approaches. These are preliminary considerations, not a declaration that the tools have already been selected or implemented.
+The selector first samples from the requested difficulty. If fewer than five questions are available at that level, it fills the remaining places from the neighbouring levels defined by the question service. The selected questions are then ordered from easy to hard. Sampling is performed without replacement within the session, so the same question is not selected twice in one interview. The bank is fixed data; the current system does not generate new questions or adapt a later question to the candidate's earlier answer.
 
 \begin{table}[H]
 \centering
 \small
-\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{3.3cm}|X|}
-\hline
-\textbf{Category} & \textbf{Requirement / consideration} \\
-\hline
-User interface & A web-based interface for interview setup, question display, response submission and feedback viewing. \\
-\hline
-Application logic & A backend service to manage interview sessions, questions, responses and analysis requests. \\
-\hline
-Programming language & To be finalised during implementation according to the selected backend and AI libraries. \\
-\hline
-Natural language processing & NLP or language-model components for analysing technical answers and preparing feedback. \\
-\hline
-Speech processing & A speech-to-text component may be used to transcribe spoken responses. Whisper is one example discussed in the literature survey. \\
-\hline
-Visual processing & OpenCV or MediaPipe are examples of visual-processing tools discussed in the reviewed literature; their suitability will be evaluated. \\
-\hline
-Data storage & Storage for question data, session information and generated feedback, subject to the final privacy and retention design. \\
-\hline
-Development tools & A code editor or IDE, version control and testing tools for implementation and collaboration. \\
-\hline
+\begin{tabularx}{0.88\textwidth}{>{\RaggedRight\arraybackslash}X r r}
+\toprule
+\textbf{Question category} & \textbf{Questions} & \textbf{Per level (easy / medium / hard)} \\
+\midrule
+Python & 8 & 3 / 3 / 2 \\
+Java & 8 & 3 / 3 / 2 \\
+C & 8 & 3 / 3 / 2 \\
+C++ & 8 & 3 / 3 / 2 \\
+SQL & 8 & 3 / 3 / 2 \\
+DBMS & 8 & 3 / 3 / 2 \\
+OOP & 8 & 3 / 3 / 2 \\
+Data Structures and Algorithms & 8 & 3 / 3 / 2 \\
+General Technical & 8 & 3 / 3 / 2 \\
+\midrule
+\textbf{Total} & \textbf{72} & \textbf{27 / 27 / 18} \\
+\bottomrule
 \end{tabularx}
-\caption{Preliminary software and technology requirements for MockMATE.}
-\label{tab:software-requirements}
+\caption{Current distribution of questions in the local question bank.}
+\label{tab:question-bank}
 \end{table}
 
-\section{Expected Outcome}
-At the end of the project, MockMATE is intended to provide:
-\begin{itemize}
-    \item A student-oriented AI-assisted mock interview platform.
-    \item An initial collection and presentation workflow for Python technical interview questions.
-    \item Support for text, audio and camera-based response modes, subject to implementation feasibility.
-    \item Analysis of the technical content of candidate answers.
-    \item Additional feedback on selected communication characteristics and observable interview behaviour.
-    \item A structured report identifying strengths and areas for improvement.
-    \item A modular design that can be extended to additional technical domains and personalisation features.
-\end{itemize}
+\section{Response Capture and Speech Transcription}
+Typed responses are submitted as JSON through the interview answer endpoint. The answer field is limited to 5,000 characters by the request schema, and whitespace-only answers are rejected. The interview component prevents a second submission while a request is in progress, while the backend independently enforces one answer per question and sequential completion.
+
+For audio input, the browser uses the MediaRecorder API to capture a recording, provide playback and permit a re-recording before submission. The browser-side recorder stops a recording after three minutes. The server accepts an audio upload only when a supported speech-to-text provider is available. The default server-side upload limit is 10 MiB. Faster-Whisper is an optional dependency rather than part of the default requirements file. When enabled, it transcribes the recording and passes the transcript to the same text evaluator. Consequently, the audio path assesses the recognised words; it does not score acoustic delivery or visual behaviour. If speech recognition is unavailable, the endpoint returns an explicit error and the interface asks the candidate to use text input instead.
+
+\section{Data Model and Persistence}
+The database contains three principal entities. A user record stores the candidate's name, unique email address, password hash and creation time. An interview record belongs to one user and stores the selected category, difficulty, status, overall score, classification, report data and timestamps. Each interview has five associated question records, ordered within the session. A question record stores the question text and reference concepts together with the submitted answer, answer mode, score, evaluation details and response time.
+
+The relationships preserve the context needed to reconstruct a completed interview. Interview questions are retrieved in their defined order, and deleting an interview cascades to its associated question records. The report is stored as structured JSON on the interview record, while question-level evaluation details are stored with their corresponding question. The default database URL points to a local SQLite file; the URL is configurable through the backend environment.
+
+\section{Answer Evaluation}
+The current evaluator is implemented in \texttt{ml\_engine/evaluator.py}. It is based on predefined concepts, phrase alternatives and simple text statistics. It normalises the response, checks each expected concept for a match and calculates five dimensions. The weighted score is:
+
+\[
+S = 0.15R + 0.25K + 0.30C + 0.15M + 0.15L,
+\]
+
+where \(R\) is relevance, \(K\) is keyword coverage, \(C\) is the concept-based correctness measure, \(M\) is completeness and \(L\) is clarity. Each dimension is normalised to a scale from 0 to 100 before the weighted sum is calculated.
+
+Relevance considers whether expected concepts and terms from the question appear in the answer. Keyword coverage is the fraction of the question's reference concepts that are matched. The measure labelled correctness estimates whether enough of those concepts are present; it does not check the truth of the statements. Completeness combines the number of words with concept coverage, using a target length associated with the question difficulty. Clarity is estimated from answer length, average sentence length and vocabulary diversity. Very short answers and answers with no matched reference concepts are capped at ten points.
+
+The evaluator labels an individual response \texttt{Correct} at 70 or above, \texttt{Partially correct} from 40 to 69, and \texttt{Incorrect} below 40. These labels are outputs of the heuristic, not expert judgements. A response may contain an expected term in an incorrect explanation and still receive credit; conversely, a valid explanation phrased differently from the reference concepts may not receive full credit. The scores should therefore be read as indicators of concept coverage and answer structure.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{0.86\textwidth}{>{\RaggedRight\arraybackslash}X r}
+\toprule
+\textbf{Evaluation dimension} & \textbf{Weight} \\
+\midrule
+Relevance & 15\% \\
+Keyword coverage & 25\% \\
+Concept-based correctness measure & 30\% \\
+Completeness & 15\% \\
+Clarity & 15\% \\
+\bottomrule
+\end{tabularx}
+\caption{Weights used by the keyword-based evaluator.}
+\label{tab:evaluation-weights}
+\end{table}
+
+\section{Report Aggregation}
+After the final response, the report builder calculates the arithmetic mean of the five question scores and assigns an overall classification. Scores of 80 or above are classified as Excellent, 65--79 as Good, 45--64 as Average, and lower scores as Needs Improvement. It also averages each evaluation dimension across the interview.
+
+The report lists topics with scores of at least 70 as strengths and topics below 45 as areas needing work. It collects missing concepts from the lowest-scoring answers, removes duplicates and limits the list to twelve entries. Suggestions are selected from the dimension averages and weak topics. The results interface presents this information alongside each question, the submitted answer, the evaluator's feedback and the concepts matched or missed.
+
+\section{API Organisation}
+The backend exposes a small REST API grouped around authentication and interview management. The principal endpoints are summarised in Table~\ref{tab:api-endpoints}.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{>{\RaggedRight\arraybackslash}p{1.8cm} >{\RaggedRight\arraybackslash}p{5.1cm} X}
+\toprule
+\textbf{Method} & \textbf{Endpoint} & \textbf{Purpose} \\
+\midrule
+POST & \texttt{/api/auth/register} & Create an account and issue an access token. \\
+POST & \texttt{/api/auth/login} & Verify credentials and issue an access token. \\
+GET & \texttt{/api/auth/me} & Return the authenticated user's profile. \\
+GET & \texttt{/api/meta} & Return categories, difficulty levels and feature availability. \\
+POST & \texttt{/api/interviews} & Create an interview and select five questions. \\
+GET & \texttt{/api/interviews} & List the authenticated user's interview history. \\
+GET & \texttt{/api/stats} & Return completed, in-progress and score statistics. \\
+GET & \url{/api/interviews/\{id\}} & Retrieve the current state of an interview. \\
+POST & \url{/api/interviews/\{id\}/answer} & Submit a written answer. \\
+POST & \url{/api/interviews/\{id\}/answer/audio} & Upload and transcribe an audio answer when STT is enabled. \\
+GET & \url{/api/interviews/\{id\}/report} & Retrieve the completed report and question-level results. \\
+\bottomrule
+\end{tabularx}
+\caption{Principal backend API endpoints.}
+\label{tab:api-endpoints}
+\end{table}
+
+\section{Security and Implementation Boundaries}
+Passwords are hashed with bcrypt and are never returned by the API. Access tokens are signed using HS256 and expire after a configurable period, which defaults to 120 minutes. Protected endpoints resolve the current user from the bearer token. Interview retrieval and reporting also check ownership, returning a not-found response when a record does not belong to the requesting user. Request schemas validate registration fields and constrain answer length; audio uploads are checked for media type and size.
+
+The current frontend stores the access token in browser local storage. This is simple for a prototype but exposes the token to a successful cross-site scripting attack. The repository also does not implement email verification or rate limiting. These are deployment limitations rather than features that should be assumed to exist. Production use would require stronger session handling, operational controls, a defined audio-retention policy and a security review.
+
+% ==========================================================================
+% Chapter 4
+% ==========================================================================
+\chapter{Implementation Modules and Technology Stack}
+
+\section{Frontend and Navigation Module}
+The frontend is implemented with React 18 and Vite. The application is divided into pages and reusable components rather than placing the whole workflow in one view. The landing, login and registration pages provide the public entry points. After authentication, the protected area exposes the dashboard, interview configuration, interview session, results and history pages. Shared components include the navigation bar, protected-route wrapper, loading indicator, score ring and audio recorder.
+
+The authentication context holds the current user in application state. On a page reload, it checks whether a token exists and requests the user profile before rendering the protected workflow. The Axios client attaches the bearer token to requests and centralises error handling. This arrangement keeps authentication behaviour consistent across the pages.
+
+\section{Authentication Module}
+Registration accepts a full name, email address and password. The request schema trims the name, normalises the email to lowercase, checks its format and requires a password containing at least one letter and one number. Passwords must be at least eight characters and are hashed with bcrypt before storage. Login verifies the supplied password against the stored hash and returns a signed JWT on success. The current-user endpoint is used by the frontend to restore the authenticated session.
+
+\section{Dashboard and Interview History Module}
+The dashboard combines the statistics endpoint with the interview list. It displays the number of completed interviews, the average score and the best score, along with recent sessions. An interview left in progress is shown with its completion count and can be resumed. The history page lists all sessions in reverse chronological order and links completed interviews to their reports while directing unfinished sessions back to the active interview view.
+
+\section{Interview Configuration and Question Management Module}
+The configuration page loads available categories, difficulty levels and the number of questions per interview from the backend metadata endpoint. A candidate chooses one category and one difficulty before starting. The question service reads the JSON bank, selects five distinct questions and records the selected text, topic, difficulty and reference concepts with the new interview. Keeping question selection in a dedicated service makes the source of questions replaceable without changing the interview routes.
+
+\section{Interview Session and Answer Capture Module}
+The interview page requests the current session state and metadata, displays the active question and tracks progress through the five-question sequence. The text mode provides a bounded answer field. The audio mode uses a browser recorder with playback and re-recording controls. A synchronous submission guard prevents repeated clicks from submitting the same answer while a request is pending; the backend still performs the authoritative checks for order, ownership and duplicate answers.
+
+When the final answer is accepted, the interface navigates to the results view. If a request fails, the page displays the backend error and can refresh the session state when the server reports a conflict. This keeps the client display aligned with the interview state held by the backend.
+
+\section{Speech-to-Text Module}
+Speech transcription is isolated in \texttt{ml\_engine/stt.py}. The module checks whether the configured provider and the \texttt{faster\_whisper} package are available. When enabled, it loads a Faster-Whisper model using the configured model name, with \texttt{base} as the default, and runs transcription on the CPU using integer quantisation. Voice activity detection is enabled during transcription. If the package is absent or the provider is disabled, the backend reports that audio evaluation is unavailable and does not pretend that the recording has been assessed.
+
+\section{Answer Evaluation Module}
+The evaluator follows a small interface defined by \texttt{BaseEvaluator}. The current registered implementation is \texttt{KeywordEvaluator}. It normalises text, matches expected concepts and computes the five weighted dimensions described in Chapter 3. The registry provides a point at which another evaluator can be registered later, but the supplied project contains only the keyword evaluator. No external LLM API is called by the current implementation.
+
+\section{Feedback and Report Module}
+The report builder receives the question topics, scores, dimension breakdowns, missing concepts and verdicts after all questions have been answered. It calculates the overall score and classification, derives strengths and areas for improvement, collects missing concepts and creates study suggestions. The report is stored with the interview and returned through a dedicated endpoint. The results page renders the report summary and lets the candidate expand each question to inspect the answer and its evaluation.
+
+\section{Database Module}
+SQLAlchemy defines the User, Interview and InterviewQuestion models. The relationships connect each interview to its owner and each interview question to its session. JSON columns are used for the question's reference concepts, the per-question evaluation and the final report. The default configuration uses SQLite, and database sessions are provided to the API routes through a dependency that closes each session after the request has been handled.
+
+\section{Technology Stack}
+Table~\ref{tab:technology-stack} summarises the technologies declared in the source repository. Faster-Whisper is optional and is not installed by the default requirements file.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{>{\RaggedRight\arraybackslash}p{3.4cm} X}
+\toprule
+\textbf{Layer} & \textbf{Technology and role} \\
+\midrule
+Frontend framework & React 18 for component-based interface development. \\
+Frontend tooling & Vite for local development and production bundling. \\
+Routing & React Router for public and authenticated application routes. \\
+HTTP communication & Axios for API requests, bearer-token attachment and error handling. \\
+Backend framework & FastAPI for REST endpoints and request handling. \\
+Validation & Pydantic for request models and field validation. \\
+ORM and database & SQLAlchemy 2 with SQLite as the default database. \\
+Authentication & bcrypt for password hashing and PyJWT for signed access tokens. \\
+Audio transcription & Faster-Whisper as an optional speech-to-text dependency. \\
+Testing & pytest and httpx for backend tests and API-level checks. \\
+\bottomrule
+\end{tabularx}
+\caption{Technology stack represented in the current repository.}
+\label{tab:technology-stack}
+\end{table}
+
+\section{Automated Test Coverage}
+The backend test suite contains tests for account registration, login and input validation; authenticated access to user-specific interviews; question-bank structure and five-question selection; sequential text-answer submission; report generation and classification; and the behaviour of the audio endpoint when speech recognition is unavailable. The evaluator tests compare stronger, weaker and off-topic answers and check the resulting report fields. These tests define useful regression checks for the current implementation. They do not, by themselves, establish the educational value of the feedback or the accuracy of the score against expert assessment.
 
 % ==========================================================================
 % Chapter 5
 % ==========================================================================
-\chapter{Conclusion and Future Work}
+\chapter{Current Status and Further Development}
 
-\section{Conclusion}
-This Phase I report presents the proposed design of MockMATE, an AI-powered interview practice platform intended primarily for students. The project is motivated by the limited availability of realistic and repeatable interview practice opportunities and the difficulty students may face in obtaining structured feedback.
+\section{Implemented State}
+The repository contains the main application flow for the student practice cycle: account creation, interview configuration, question delivery, response submission, automated evaluation, report generation and history. The question bank is populated across nine technical categories, and interview records are persisted with their associated answers and evaluation data. The current implementation also includes an optional speech transcription path and backend tests for key workflows.
 
-The literature review examined approaches to automated mock interviews, resume-based question generation, speech processing, multimodal assessment, emotion recognition and LLM-based dialogue generation. The reviewed works demonstrate useful capabilities, while also indicating limitations related to assessment depth, input quality, computational requirements, feedback consistency and the difference between recruitment-oriented systems and student practice platforms.
+The most important qualification concerns the meaning of the report score. The current evaluator measures the presence of predefined concepts and uses answer length and sentence-level statistics as proxies for completeness and clarity. It does not reason about the full meaning of an answer, compare competing explanations or verify factual claims. An answer that contains expected terms in a flawed explanation may score better than it should, while a correct answer expressed with different terminology may lose credit. The interface already communicates that technical correctness cannot be fully verified; this limitation should remain visible wherever scores are presented.
 
-Based on these observations, MockMATE is proposed as a platform that initially focuses on Python technical interviews and supports text, audio and camera-based responses. Its planned workflow includes interview management, question presentation, response processing, AI-based analysis and feedback report generation. The report establishes the project scope, objectives, proposed architecture and major functional modules for the next phase.
+The current version is also narrower than the multimodal system originally considered in the literature survey. It has no camera workflow, visual feature extraction, emotion recognition, resume-based personalisation or adaptive follow-up questions. Audio is a route to transcription, not a separate assessment of speaking style. These boundaries describe the supplied code and should not be confused with future project ideas.
 
-As this is the Phase I report, it documents the study and proposed design rather than claiming completed implementation or measured system performance. The actual models, technology stack, evaluation procedure and performance results will be determined and reported during subsequent development.
+\section{Further Development}
+The next improvement should address assessment quality before adding more input modalities. A stronger evaluator could combine concept matching with semantic comparison against reference explanations, but its outputs would need to be tested against answers reviewed by subject experts. Such an evaluation should measure false positives and false negatives across different answer phrasings and should examine whether the feedback remains useful across all supported categories and difficulty levels.
 
-\section{Future Work}
-The following activities are proposed for the next phase:
-\begin{enumerate}
-    \item Finalise the system architecture and select the implementation technologies.
-    \item Design and develop the user interface and interview session workflow.
-    \item Prepare and organise the initial Python technical question set.
-    \item Implement text-based interview interaction and answer evaluation.
-    \item Integrate audio capture and speech-to-text processing.
-    \item Investigate camera-based processing for selected observable interview features.
-    \item Develop the feedback generation and report presentation components.
-    \item Test the system using representative interview sessions and refine the feedback.
-    \item Evaluate the reliability, usability and limitations of the implemented system.
-    \item Consider future extensions such as adaptive follow-up questions, resume-based personalisation and additional technical domains.
-\end{enumerate}
+The question bank can be expanded and reviewed for coverage, ambiguity and consistency of difficulty. A later question service could support controlled question generation or adaptive follow-up questions, provided that generated content is checked before use. The report can also be improved by linking each missing concept to a short explanation or a curated learning resource rather than relying only on a list of terms.
+
+Audio support requires deployment and usability work as well. The application should make transcription availability clear before recording, define how long recordings and transcripts are retained, and provide a reliable cleanup policy. If camera-based practice is introduced, it should be an opt-in feature with a clearly stated purpose. Visual or emotion-related signals should not be presented as objective measures of confidence, personality or employability.
+
+Before wider use, the application also needs a security and deployment review. Moving authentication tokens from local storage to a safer session mechanism, adding rate limits and email verification, managing secrets explicitly, and testing against a production database would address limitations noted in the repository. Finally, a small usability study with students and an expert review of sampled answers would provide evidence about whether the interface and feedback actually support preparation for technical interviews.
 
 % --------------------------------------------------------------------------
 % References
 % --------------------------------------------------------------------------
+\noindent\textit{Note: The supplied literature-survey material did not include complete publication metadata for every item. The entries below preserve the author, title and year information available in that material; publication venues, page numbers and DOIs should be verified before final submission.}
 \begin{thebibliography}{99}
 \addcontentsline{toc}{chapter}{REFERENCES}
 
 \bibitem{abhishek}
 Madhura Abhishek and Meenakshi Sheik,
 ``AI Mock Interview System.''
-\emph{Bibliographic publication details were not included in the supplied literature survey.}
+
 
 \bibitem{khapekar}
 S. Khapekar et al.,
 ``Rider-AI Powered Mock Interview System with Real-Time Voice and Emotion Analysis.''
-\emph{Bibliographic publication details were not included in the supplied literature survey.}
+
 
 \bibitem{baby}
 A. Baby et al.,
 ``FairHire: AI-Driven Resume Profiling and Technical Interview Automation.''
-\emph{Bibliographic publication details were not included in the supplied literature survey.}
+
 
 \bibitem{senthilkumar}
 K. Senthilkumar et al.,
@@ -765,7 +733,7 @@ J. De Baer et al.,
 \bibitem{wuicpr}
 X. Wu et al.,
 ``Candidate Evaluation with Multimodal Data-Driven for Recruitment,'' ICPR, 2024.
-\emph{The supplied survey lists this as a separate entry; confirm its relationship to the other Wu et al. entry.}
+
 
 \bibitem{wang}
 Y. Wang et al.,
