@@ -1,0 +1,54 @@
+
+name: Build LaTeX Documents
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**.tex'
+      - '**.bib'
+      - '**.png'
+      - '**.jpg'
+      - '.github/workflows/latex.yml'
+
+  pull_request:
+    paths:
+      - '**.tex'
+      - '**.bib'
+      - '**.png'
+      - '**.jpg'
+      - '.github/workflows/latex.yml'
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install Tectonic
+        uses: wtfjoke/setup-tectonic@v4
+
+      - name: Build literature survey
+        working-directory: literature_survey
+        run: tectonic literature_survey.tex
+
+      - name: Build Phase I report
+        working-directory: phase1-report
+        run: tectonic mockmate_phase1_report.tex
+
+      - name: Upload PDFs
+        uses: actions/upload-artifact@v4
+        with:
+          name: mockmate-documents
+          path: |
+            literature_survey/literature_survey.pdf
+            phase1-report/mockmate_phase1_report.pdf
+          retention-days: 30
+
