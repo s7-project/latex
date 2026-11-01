@@ -1,0 +1,295 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+
+% ---------- Packages ----------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{ragged2e}
+\usepackage{tikz}
+\usepackage{xcolor}
+\usepackage{graphicx}
+
+% ---------- Theme and colours ----------
+\usetheme{default}
+\definecolor{Plum}{HTML}{43283F}
+\definecolor{Silver}{HTML}{C0C0C0}
+\definecolor{Rose}{HTML}{A65D78}
+\definecolor{Cream}{HTML}{F8F6F2}
+\definecolor{Ink}{HTML}{28242A}
+\definecolor{SoftRose}{HTML}{F1E6EB}
+\definecolor{DeepPurple}{HTML}{5B3A78}
+
+\setbeamercolor{normal text}{fg=Ink,bg=Cream}
+\setbeamercolor{structure}{fg=DeepPurple}
+\setbeamercolor{frametitle}{fg=white,bg=DeepPurple}
+\setbeamercolor{title}{fg=white}
+\setbeamercolor{title}{fg=DeepPurple}
+\setbeamercolor{subtitle}{fg=DeepPurple}
+\setbeamercolor{author}{fg=DeepPurple}
+\setbeamercolor{institute}{fg=DeepPurple}
+\setbeamercolor{date}{fg=DeepPurple}
+\setbeamercolor{block title}{fg=white,bg=DeepPurple}
+\setbeamercolor{block body}{fg=Ink,bg=SoftRose}
+\setbeamercolor{itemize item}{fg=Rose}
+\setbeamercolor{itemize subitem}{fg=Rose}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\raise0.15ex\hbox{\color{Rose}\small$\blacktriangleright$}}
+\setbeamertemplate{footline}{
+  \leavevmode
+  \hbox{
+    \begin{beamercolorbox}[wd=.82\paperwidth,ht=2.7ex,dp=1ex,leftskip=1em]{author in head/foot}
+      \color{Plum}\scriptsize LBS College of Engineering, Kasaragod \hfill MockMATE
+    \end{beamercolorbox}
+    \begin{beamercolorbox}[wd=.18\paperwidth,ht=2.7ex,dp=1ex,center]{date in head/foot}
+      \color{Plum}\scriptsize \insertframenumber
+    \end{beamercolorbox}
+  }
+}
+\setbeamertemplate{frametitle}{
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,ht=0.72cm,dp=0.22cm,leftskip=0.55cm,rightskip=0.4cm]{frametitle}
+    \usebeamerfont{frametitle}\insertframetitle
+  \end{beamercolorbox}
+}
+\setbeamerfont{frametitle}{size=\large,series=\bfseries}
+\setbeamerfont{normal text}{size=\normalsize}
+\setbeamerfont{title}{size=\LARGE,series=\bfseries}
+\setbeamersize{text margin left=0.65cm,text margin right=0.65cm}
+
+% ---------- Consistent table columns ----------
+\newcolumntype{Y}{>{\RaggedRight\arraybackslash}X}
+\newcommand{\litrow}[6]{#1 & #2 & #3 & #4 & #5 & #6\\\hline}
+
+\title{MockMate AI}
+\subtitle{An AI-Powered Interview Platform for Students}
+\author{Adarsh Bhaktha K \and Vidhath N Shetty \and Aboobacker Ruvais \and Pavan Kumar}
+\institute{Department of Computer Science and Engineering\\LBS College of Engineering, Kasaragod}
+\date{Project Phase I}
+
+\begin{document}
+
+% ---------- Cover page ----------
+{
+\setbeamertemplate{footline}{}
+\begin{frame}[plain]
+\begin{tikzpicture}[remember picture,overlay]
+  \fill[DeepPurple] (current page.north west) rectangle ([yshift=-2.15cm]current page.north east);
+  \fill[Rose] (current page.south west) rectangle ([yshift=0.14cm]current page.south east);
+\end{tikzpicture}
+\vspace{0.2cm}
+\begin{center}
+{\color{white}\Large\bfseries MOCKMATE AI}\\[-1mm]
+{\color{white}\normalsize An AI-Powered Interview Platform for Students}
+\vspace{0.55cm}
+
+{\color{Plum}\large\bfseries DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING}\\
+{\color{Ink}\normalsize LBS College of Engineering, Kasaragod}
+
+\vspace{0.6cm}
+\begin{minipage}[t]{0.57\textwidth}
+\textbf{\color{Plum}Presented by}\\[2mm]
+\textbf{Group ID:} PG23CSB03\\[3mm]
+Adarsh Bhaktha K -- KSD23CS010\\
+Vidhath N Shetty -- KSD23CS128\\
+Aboobacker Ruvais -- KSD23CS009\\
+Pavan Kumar -- KSD23CS097
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.34\textwidth}
+\raggedleft
+\textbf{\color{Plum}Project Guide}\\[2mm]
+Prof. Reema K V\\Associate Professor\\[1mm]
+\vspace{0.15cm}
+\textbf{\color{Plum}Project Coordinator}\\[2mm]
+Prof. Jayalekshmi S\\
+Associate Professor
+\end{minipage}
+
+\vfill
+{\color{Plum}\bfseries PROJECT PHASE I}\\[2mm]
+{\small Academic Year 2026--27}
+\vspace{0.25cm}
+\end{center}
+\end{frame}
+}
+% ---------- Contents----------
+
+\begin{frame}{Table of Contents}
+
+\begin{columns}[T,onlytextwidth]
+
+    \begin{column}{0.47\textwidth}
+        \begin{itemize}
+            \item Introduction
+            \item Literature Survey
+            \item Gaps Identified
+            \item Motivation
+            \item Stakeholder Survey
+            \item Problem Statement
+            \item Objectives
+            \item Conclusion
+            \item Reference
+        \end{itemize}
+    \end{column}
+
+\end{columns}
+
+\end{frame}
+
+% ---------- Introduction ----------
+\begin{frame}{Introduction}
+\begin{itemize}
+  \item Technical interviews help employers understand a candidate's knowledge, problem-solving ability, and communication.
+  \item Many students and freshers feel nervous because they have limited chances to practise in a realistic interview setting.
+  \item Traditional mock interviews depend on a human interviewer and may not always be easy to access.
+  \item \textbf{MockMate AI} is planned as an interview-practice platform for students.
+  \item The initial version focuses on Python interview questions and lets candidates respond through chat, audio, and camera-based inputs.
+  \item After the interview, the system aims to provide personal feedback on technical answers, communication, confidence, and observable interview behaviour.
+\end{itemize}
+\vspace{0.15cm}
+\begin{block}{Main idea}
+Give students a simple way to practise interviews, understand their weak areas, and improve before a real interview.
+\end{block}
+\end{frame}
+
+% ---------- Literature survey (3 papers per slide) ----------
+% Three papers per slide keeps the table readable and prevents overlap.
+% ---------- Literature survey 1 ----------
+\begin{frame}{Literature Survey (1/4)}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{|>{\centering\arraybackslash}p{0.045\textwidth}|p{0.19\textwidth}|p{0.13\textwidth}|Y|Y|Y|}
+\hline
+\textbf{Sl. No.} & \textbf{Title} & \textbf{Author} & \textbf{Methodology} & \textbf{Advantage} & \textbf{Disadvantage}\\
+\hline
+\litrow{1}{AI Mock Interview System}{Madhura Abhishek; Meenakshi Sheik}{Generates interview questions, records answers, analyses responses, and provides feedback.}{Convenient practice; quick feedback; no human interviewer needed.}{May miss some human communication details; feedback depends on system quality.}
+\litrow{2}{Rider-AI Powered Mock Interview System with Real-Time Voice and Emotion Analysis}{Soni Khapekar et al.}{Simulated interview with question generation, voice analysis, and emotion analysis.}{Interactive practice; combines voice and emotion analysis.}{Emotion detection may be inaccurate; recording quality affects results.}
+\litrow{3}{FairHire: AI-Driven Resume Profiling and Technical Interview Automation}{Akshay Baby et al.}{Extracts resume skills, builds candidate profiles, and generates technical questions.}{Speeds up screening; links resume analysis with interviews.}{Depends on candidate data quality; response understanding can be difficult.}
+\end{tabularx}
+\end{frame}
+
+% ---------- Literature survey 2 ----------
+\begin{frame}{Literature Survey (2/4)}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{|>{\centering\arraybackslash}p{0.045\textwidth}|p{0.19\textwidth}|p{0.13\textwidth}|Y|Y|Y|}
+\hline
+\textbf{Sl. No.} & \textbf{Title} & \textbf{Author} & \textbf{Methodology} & \textbf{Advantage} & \textbf{Disadvantage}\\
+\hline
+\litrow{4}{AI Based Mock Interview System Using NLP (2025)}{K. Senthilkumar et al.}{Uses STT, NLP, reinforcement learning, OpenCV, MediaPipe, and TTS.}{Covers technical, communication, and behavioural aspects.}{Noise and lighting can affect results; several technologies add complexity.}
+\litrow{5}{MAG-BERT-ARL for Fair Automated Video Interview Assessment (2024)}{Bimasena Putra et al.}{Uses BERT with audio and visual information, multimodal adaptation, and adversarial learning.}{Combines multiple input types and considers fairness.}{Complex model; needs computing power and suitable training data.}
+\litrow{6}{Candidate Evaluation with Multimodal Data-Driven for Recruitment (2024)}{Xing Wu et al.}{Uses GNN/GAT and DP-GNN to process text, audio, and image information.}{Combines job matching with multimodal evaluation.}{Needs high-quality data; personality prediction may be inaccurate; not focused on adaptive technical questions.}
+\end{tabularx}
+\end{frame}
+
+% ---------- Literature survey 3 ----------
+\begin{frame}{Literature Survey (3/4)}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{|>{\centering\arraybackslash}p{0.045\textwidth}|p{0.19\textwidth}|p{0.13\textwidth}|Y|Y|Y|}
+\hline
+\textbf{Sl. No.} & \textbf{Title} & \textbf{Author} & \textbf{Methodology} & \textbf{Advantage} & \textbf{Disadvantage}\\
+\hline
+\litrow{7}{Conversate: Supporting Reflective Learning in Interview Practice Through Interactive Simulation and Dialogic Feedback (2025)}{Taufiq Daryanto et al.}{Whisper for speech-to-text; GPT-3.5-Turbo for simulation; GPT-4 for feedback; MongoDB and Firebase storage.}{Adaptive follow-up questions and interactive feedback.}{Quality and consistency depend on AI-generated questions and feedback.}
+\litrow{8}{MOCKLLM: A Multi-Agent Behavior Collaboration Framework for Online Job Seeking and Recruiting (2025)}{Hongda Sun et al.}{Nanbeige-16B-Chat, multi-agent role-play, vLLM, reflection memory, and handshake protocol.}{Supports multi-turn practice and uses reflection to improve later responses.}{More complex and resource-intensive than single-agent systems.}
+\litrow{9}{Single- vs. Dual-Prompt Dialogue Generation with LLMs for Job Interviews (2025)}{Joachim De Baer et al.}{GPT-4o and Llama 3.3 70B; interviewer/candidate role agents; Llama judging via Groq.}{Can create more human-like dialogue; role-based interaction.}{Dual prompts use more tokens and increase API/computing cost.}
+\end{tabularx}
+\end{frame}
+
+% ---------- Literature survey 4 ----------
+\begin{frame}{Literature Survey (4/4)}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{|>{\centering\arraybackslash}p{0.045\textwidth}|p{0.19\textwidth}|p{0.13\textwidth}|Y|Y|Y|}
+\hline
+\textbf{Sl. No.} & \textbf{Title} & \textbf{Author} & \textbf{Methodology} & \textbf{Advantage} & \textbf{Disadvantage}\\
+\hline
+\litrow{10}{Candidate Evaluation with Multimodal Data-Driven for Recruitment (ICPR 2024)}{X. Wu et al.}{Combines graph neural networks with text, audio, and image processing.}{Supports multimodal candidate assessment.}{Requires quality data and does not focus on adaptive technical questions.}
+\litrow{11}{Multi-Label Multimodal Emotion Recognition with Transformer-Based Fusion (2023)}{Y. Wang et al.}{Processes video, audio, and text using transformer-based multimodal fusion.}{Recognises multiple emotions and relationships between input types.}{Computationally demanding; mainly focuses on emotion recognition.}
+\litrow{12}{Experience-Aware Question Generation: A Personalized Approach (2025)}{Mallikarjuna G. D. et al.}{Analyses resume and experience using NLP and Bloom's Taxonomy to set question difficulty.}{Personalised questions that match experience and difficulty.}{Depends on resume details; question accuracy can vary; no video analysis.}
+\end{tabularx}
+\vspace{0.08cm}
+\end{frame}
+
+% ---------- Gaps identified ----------
+\begin{frame}{Gaps Identified}
+\begin{itemize}
+  \item Many existing systems provide interview simulation, but the depth of feedback can be limited.
+  \item Some systems analyse voice or emotion without fully assessing technical answers.
+  \item Resume-based question generation may not adjust questions based on the candidate's actual answers.
+  \item Multimodal systems often focus on recruitment or emotion recognition rather than regular student practice.
+  \item AI-generated questions and feedback may sometimes be inaccurate or inconsistent.
+  \item Students need one accessible platform that brings together technical practice, communication feedback, and observable interview behaviour.
+\end{itemize}
+\vspace{0.1cm}
+\begin{block}{Identified gap}
+A student-focused platform is needed to support realistic interview practice and give useful, understandable feedback in one place.
+\end{block}
+\end{frame}
+
+% ---------- Motivation ----------
+\begin{frame}{Motivation}
+\begin{itemize}
+  \item Help students and freshers practice interviews before applying for jobs.
+  \item Reduce nervousness by allowing repeated practice in a low-pressure environment.
+  \item Make interview practice easier to access without always depending on another person.
+  \item Help students understand their strengths and areas that need improvement.
+  \item Provide feedback on technical responses, communication, confidence, and visible interview behaviour.
+  \item Start with Python interviews and keep the platform open to future expansion into other technical areas.
+\end{itemize}
+\end{frame}
+
+% ---------- Stakeholder survey ----------
+\begin{frame}{Stakeholder Survey}
+\begin{columns}[T,onlytextwidth]
+\column{0.49\textwidth}
+\begin{block}{Students}
+\begin{itemize}
+  \item Students may feel nervous or lack confidence during interviews.
+  \item They need realistic practice and quick feedback.
+  \item Personalised suggestions can help them work on weak areas.
+  \item Questions should suit their learning level.
+\end{itemize}
+\end{block}
+\column{0.49\textwidth}
+\begin{block}{Recruiters}
+\begin{itemize}
+  \item Recruiters look for technical knowledge and clear communication.
+  \item Manual evaluation of many candidates takes time.
+  \item Consistent assessment can support fairer decisions.
+  \item Clear performance reports can help identify strengths and weaknesses.
+\end{itemize}
+\end{block}
+\end{columns}
+\vspace{0.15cm}
+\centering
+\small The platform is intended mainly to help students prepare, while also considering the skills recruiters value.
+\end{frame}
+
+% ---------- Problem statement ----------
+\begin{frame}{Problem Statement}
+\begin{block}{Problem}
+Many students and freshers have limited opportunities to practise technical interviews in a realistic setting. They may find it difficult to judge their technical answers, communication, and confidence without detailed feedback. Mock interviews with human interviewers may not always be available. Therefore, an accessible AI-assisted platform is needed to support interview practice and provide personalised feedback.
+\end{block}
+\end{frame}
+
+% ---------- Objectives ----------
+\begin{frame}{Objectives}
+\begin{itemize}
+  \item Develop an AI-powered interview practice platform for students.
+  \item Begin with Python-specific technical interview questions.
+  \item Allow candidates to respond using chat, audio, and camera-based inputs.
+  \item Analyse technical answers and selected communication and observable behaviour features.
+  \item Generate personalised feedback that highlights strengths and areas for improvement.
+  \item Design the system so that future versions can support more programming languages, technical domains, adaptive questions, and resume-based personalisation.
+\end{itemize}
+\end{frame}
+
+\end{document}
